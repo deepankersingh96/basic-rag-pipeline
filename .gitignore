@@ -1,0 +1,7 @@
+.DS_Store
+.env
+.python-version
+datasets
+labcedb_index
+outputs
+
