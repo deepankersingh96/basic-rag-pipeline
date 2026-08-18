@@ -4,4 +4,5 @@
 datasets
 labcedb_index
 outputs
-
+**/lancedb_index
+**/__pycache__
