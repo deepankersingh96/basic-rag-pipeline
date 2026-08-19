@@ -12,10 +12,10 @@ class Evaluator:
         run = defaultdict(dict)
         print(f"Converting {len(df)} queries.")
 
-        for _id, doc_id, distance in df[["id", "doc_id", "_distance"]].itertuples(
+        for _id, doc_id, distance in df[["q_id", "doc_id", "_distance"]].itertuples(
             index=False
         ):
-            run[_id][doc_id] = - distance
+            run[_id][doc_id] = -distance
 
         print(f"Found {len(run)} run queries.")
         return run
@@ -39,7 +39,7 @@ class Evaluator:
 
     @staticmethod
     def print_line(measure, scope, value):
-        print('{:25s}{:8s}{:.4f}'.format(measure, scope, value))
+        print("{:25s}{:8s}{:.4f}".format(measure, scope, value))
 
     def evaluate(self, qrel, run, measures):
         self.evaluator = pytrec_eval.RelevanceEvaluator(qrel, measures)
@@ -48,10 +48,14 @@ class Evaluator:
         for measure in measures:
             self.print_line(
                 measure,
-                'all',
+                "all",
                 pytrec_eval.compute_aggregated_measure(
                     measure,
-                    [query_measures[measure.replace('.', '_')]
-                    for query_measures in results.values()]))
-        
+                    [
+                        query_measures[measure.replace(".", "_")]
+                        for query_measures in results.values()
+                    ],
+                ),
+            )
+
         return results

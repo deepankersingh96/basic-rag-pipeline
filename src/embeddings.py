@@ -1,15 +1,8 @@
 import openai
-from src.chunking import Chunk
-from src.data import Document, Query
 from typing import Iterable, Optional
-from dataclasses import dataclass
 from dotenv import load_dotenv
 
-
-@dataclass
-class Embedding:
-    chunk: Chunk
-    vector: list[float]
+from src.models import Embedding, Chunk, Query
 
 
 class Embedder:
@@ -18,38 +11,35 @@ class Embedder:
         self.client = openai.Client()
 
     def embed_chunks(self, chunks: Iterable[Chunk]) -> Iterable[Embedding]:
+        chunks = list(chunks) # materialize
 
         responses = self.client.embeddings.create(
-            model="text-embedding-3-small",
-            input=[chunk.text for chunk in chunks]
+            model="text-embedding-3-small", input=[chunk.text for chunk in chunks]
         )
 
         vectors = [x.embedding for x in responses.data]
 
-        embeddings = [Embedding(
-            chunk=chunk,
-            vector=vector
-        ) for chunk, vector in zip(chunks, vectors)]
+        embeddings = [
+            Embedding(chunk=chunk, vector=vector)
+            for chunk, vector in zip(chunks, vectors)
+        ]
 
         return embeddings
 
     def embed_queries(self, queries: Iterable[Query]) -> Iterable[Embedding]:
-        #TODO: EMbeddigns should not depend on Chunk or Document
+        queries = list(queries) # materialize
+
         responses = self.client.embeddings.create(
-                    model="text-embedding-3-small",
-                    input=[q.text for q in queries]
-                )
+            model="text-embedding-3-small", input=[q.text for q in queries]
+        )
 
         vectors = [x.embedding for x in responses.data]
-        
-        embeddings = [Embedding(
-            chunk=Chunk(
-                id=q.id,
-                doc_id=None,
-                text=q.text,
-                metadata=q.metadata
-            ),
-            vector=vector
-        ) for q, vector in zip(queries, vectors)]
+
+        embeddings = [
+            Embedding(
+                query=Query(q_id=q.q_id, text=q.text, metadata=q.metadata), vector=vector
+            )
+            for q, vector in zip(queries, vectors)
+        ]
 
         return embeddings

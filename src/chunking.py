@@ -2,15 +2,7 @@ from dataclasses import dataclass
 from typing import Optional, Iterable
 import jsonlines
 
-from src.data import Document
-
-
-@dataclass
-class Chunk:
-    id: str
-    doc_id: str
-    text: str
-    metadata: Optional[dict]
+from src.models import Document, Chunk
 
 
 class Chunker:
@@ -39,9 +31,14 @@ class Chunker:
             text = doc.text
             splits = self.split_fix_size(text, chunk_size)
 
-            for idx, split in enumerate(splits):
+            for split_id, split in enumerate(splits):
                 chunks.append(
-                    Chunk(id=idx, doc_id=doc.id, text=split, metadata=doc.metadata)
+                    Chunk(
+                        ch_id=f"{doc.doc_id}_{split_id}",
+                        doc_id=doc.doc_id,
+                        text=split,
+                        metadata=doc.metadata,
+                    )
                 )
 
         return chunks

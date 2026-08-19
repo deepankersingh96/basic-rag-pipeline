@@ -4,17 +4,8 @@ from dataclasses import dataclass
 from typing import Optional, Iterable
 import jsonlines
 
-@dataclass
-class Document:
-    id: str
-    text: str
-    metadata: Optional[dict]
+from src.models import Document, Query
 
-@dataclass
-class Query:
-    id: str
-    text: str
-    metadata: Optional[dict]
 
 class BIERDataset:
     def __init__(self):
@@ -23,12 +14,12 @@ class BIERDataset:
     def document_loader(self, file_path, batch_size=4) -> Iterable[Document]:
         batch = []
 
-        with jsonlines.open(file_path, 'r') as reader: 
+        with jsonlines.open(file_path, "r") as reader:
             for line in reader:
                 document = Document(
-                    id=line['_id'],
-                    text=line['title'] + ' - ' + line['text'],
-                    metadata=line.get('metadata', {})
+                    doc_id=line["_id"],
+                    text=line["title"] + " - " + line["text"],
+                    metadata=line.get("metadata", {}),
                 )
                 batch.append(document)
 
@@ -42,12 +33,10 @@ class BIERDataset:
     def query_loader(self, file_path, batch_size=4) -> Iterable[Query]:
         batch = []
 
-        with jsonlines.open(file_path, 'r') as reader:
+        with jsonlines.open(file_path, "r") as reader:
             for line in reader:
                 doc = Query(
-                    id=line['_id'], 
-                    text=line['text'],
-                    metadata=line['metadata']
+                    q_id=line["_id"], text=line["text"], metadata=line["metadata"]
                 )
                 batch.append(doc)
 
@@ -56,7 +45,3 @@ class BIERDataset:
                     batch = []
             if batch:
                 yield batch
-    
-
-
-
