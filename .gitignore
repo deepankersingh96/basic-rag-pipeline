@@ -1,7 +1,7 @@
 .DS_Store
 .env
 .python-version
-datasets
+datasets/beir/datasets/**
 labcedb_index
 outputs
 **/lancedb_index
