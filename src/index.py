@@ -1,6 +1,6 @@
 import lancedb
-from src.models import Embedding, Chunk
-from typing import Iterable, Literal
+from src.models import Embedding
+from typing import Iterable, Literal, TypeAlias, get_args
 import pyarrow as pa
 import json
 
@@ -16,23 +16,29 @@ schema = pa.schema(
     ]
 )
 
+Mode: TypeAlias = Literal["overwrite", "append"]
+VALID_MODES =  get_args(Mode)
+
 
 class Indexer:
     def __init__(
-        self, uri, table_name, mode: Literal["overwrite", "append"] = "append"
+        self,
+        uri,
     ):
         self.db = lancedb.connect(uri)
-        if mode == "overwrite" or table_name not in self.db.table_names():
-            self.table = self.db.create_table(
-                table_name, None, schema=schema, mode="overwrite"
-            )
-        else:
-            self.table = self.db.open_table(table_name)
 
     def get_index(self):
         return self.db
 
-    def add_to_index(self, embeddings: Iterable[Embedding]):
+    def get_table(self, dataset_name: str):
+        return self.db.open_table(dataset_name)
+
+    def add_to_index(
+        self,
+        embeddings: Iterable[Embedding],
+        dataset_name: str,
+        mode: Mode = "append",
+    ):
 
         data_to_insert = [
             {
@@ -44,28 +50,12 @@ class Indexer:
             }
             for emb in embeddings
         ]
-
-        self.table.add(data_to_insert)
-
-        return
-
-    def search(self, q_embeddings, top_k=10):
-        q_embeddings = list(
-            q_embeddings
-        )  # materialize the iterator, to prevent loading next batch.
-        tables = []
-
-        for emb in q_embeddings:
-            result = (
-                self.table.search(emb.vector, vector_column_name="vector")
-                .metric("cosine")
-                .limit(top_k)
-                .to_arrow()
+        if mode not in VALID_MODES:
+            raise ValueError(
+                f'Invalid mode {mode!r}. Valid values are: {", ".join(VALID_MODES)}'
             )
-
-            result = result.append_column(
-                "q_id", pa.array([emb.query.q_id] * len(result))
-            )
-            tables.append(result)
-
-        return pa.concat_tables(tables) if tables else pa.table({})
+        
+        if mode == "overwrite":
+            self.db.create_table(name=dataset_name, data=data_to_insert, mode=mode)
+        elif mode == 'append':
+            self.db.open_table(dataset_name).add(data_to_insert)

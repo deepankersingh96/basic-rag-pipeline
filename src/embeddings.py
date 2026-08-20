@@ -1,5 +1,5 @@
 import openai
-from typing import Iterable, Optional
+from typing import Iterable
 from dotenv import load_dotenv
 
 from src.models import Embedding, Chunk, Query

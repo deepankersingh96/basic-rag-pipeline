@@ -1,6 +1,4 @@
-from dataclasses import dataclass
-from typing import Optional, Iterable
-import jsonlines
+from typing import Iterable
 
 from src.models import Document, Chunk
 

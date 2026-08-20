@@ -8,7 +8,7 @@ The current end-to-end example lives in [`notebooks/scifact_ir.ipynb`](./noteboo
 
 This project loads BEIR data, chunks documents, embeds chunks and queries, stores document embeddings in a vector database, retrieves the nearest matches for each query, and evaluates the results.
 
-At the moment, the implementation is centered on the SciFact dataset. The rest of BEIR is a planned expansion.
+The pipeline is table-oriented inside LanceDB: each dataset can live in its own table, and the retriever selects the table by `dataset_name` at query time.
 
 ## Quick Start
 
@@ -51,31 +51,30 @@ basic-rag-pipeline/
 
 ## Current Features
 
-- SciFact dataset support through the notebook workflow.
+- Dataset selection by LanceDB table name.
 - Document loading from BEIR-style JSONL files.
 - Fixed-size token chunking.
 - Embedding generation for document chunks and queries.
 - LanceDB-backed indexing for document embeddings.
-- Retrieval of top-k nearest neighbors.
+- Retrieval of top-k nearest neighbors from a named table.
+- Configurable distance metrics for search.
 - Evaluation utilities for IR experiments.
 
 ## Known Limitations
 
-- Only SciFact is wired up as the working example today.
 - Chunking currently supports only the fixed token strategy.
 - Embeddings are currently implemented with a single embedding backend.
-- Vector search distance is hardcoded to `cosine`.
-- `Indexer` currently mixes indexing and retrieval responsibilities.
-- Table creation in `Indexer` has a convenience path that is useful for inserting embeddings, but it is not ideal for search-only usage.
+- Retrieval currently uses one search path for all datasets that share the same LanceDB schema.
+- Search opens the requested table at query time instead of keeping a long-lived table handle per dataset.
+- Table creation in `Indexer` is still oriented around indexing workflows, not search-only workflows.
 
 ## Planned Improvements
 
 - Add support for the rest of the BEIR datasets.
 - Add more chunking strategies.
 - Add more embedding backends.
-- Make LanceDB distance configuration selectable instead of hardcoded to `cosine`.
-- Split indexing and retrieval into separate classes.
-- Make search-only usage avoid any table creation or overwrite behavior.
+- Add more retrieval-side options, such as per-dataset filtering or ranking tweaks.
+- Add search-only helpers if the workflow starts needing them.
 
 ## Notes
 

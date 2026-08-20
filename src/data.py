@@ -1,7 +1,6 @@
 # Load data into Documents schema
 
-from dataclasses import dataclass
-from typing import Optional, Iterable
+from typing import Iterable
 import jsonlines
 
 from src.models import Document, Query
