@@ -2,6 +2,7 @@ from collections.abc import Iterable
 from typing import TypeAlias, Literal, get_args
 
 import pyarrow as pa
+import lancedb
 
 
 DIST_METRIC: TypeAlias = Literal["l2", "cosine", "dot"]
@@ -9,8 +10,8 @@ VALID_DIST_METRICS = get_args(DIST_METRIC)
 
 
 class Retriever:
-    def __init__(self, db):
-        self.db = db
+    def __init__(self, uri):
+        self.db = lancedb.connect(uri)
 
     def search(
         self,

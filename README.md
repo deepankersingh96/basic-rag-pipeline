@@ -70,11 +70,11 @@ basic-rag-pipeline/
 
 ## Planned Improvements
 
-- Add support for the rest of the BEIR datasets.
 - Add more chunking strategies.
 - Add more embedding backends.
 - Add more retrieval-side options, such as per-dataset filtering or ranking tweaks.
 - Add search-only helpers if the workflow starts needing them.
+- Add LlamaIndex for chunking.
 
 ## Notes
 

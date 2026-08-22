@@ -15,7 +15,8 @@ class Evaluator:
         for _id, doc_id, distance in df[["q_id", "doc_id", "_distance"]].itertuples(
             index=False
         ):
-            run[_id][doc_id] = -distance
+            if distance < run[_id].get(doc_id, float('inf')):
+                run[_id][doc_id] = -distance
 
         print(f"Found {len(run)} run queries.")
         return run
