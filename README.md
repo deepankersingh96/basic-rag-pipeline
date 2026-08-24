@@ -79,9 +79,11 @@ basic-rag-pipeline/
 ## Planned Improvements
 
 - Add more embedding backends.
-- Add more retrieval-side options, such as per-dataset filtering or ranking tweaks.
+- Add more retrieval-side options, such as per-dataset filtering or **ranking** tweaks.
 - Add search-only helpers if the workflow starts needing them.
 - Add more chunking refinements as the corpus and evaluation needs evolve.
+- ~~Add re-ranking to refine results.~~
+- Separate Retriever and Re-ranker. 
 
 ## Notes
 

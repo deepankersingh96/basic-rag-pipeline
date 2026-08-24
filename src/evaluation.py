@@ -12,11 +12,11 @@ class Evaluator:
         run = defaultdict(dict)
         print(f"Converting {len(df)} queries.")
 
-        for _id, doc_id, distance in df[["q_id", "doc_id", "_distance"]].itertuples(
+        for _id, doc_id, score in df[["q_id", "doc_id", "score"]].itertuples(
             index=False
         ):
-            if distance < run[_id].get(doc_id, float('inf')):
-                run[_id][doc_id] = -distance
+            if score > run[_id].get(doc_id, float('-inf')):
+                run[_id][doc_id] = score
 
         print(f"Found {len(run)} run queries.")
         return run

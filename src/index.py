@@ -17,7 +17,7 @@ schema = pa.schema(
 )
 
 Mode: TypeAlias = Literal["overwrite", "append"]
-VALID_MODES =  get_args(Mode)
+VALID_MODES = get_args(Mode)
 
 
 class Indexer:
@@ -31,7 +31,9 @@ class Indexer:
         return self.db
 
     def get_table(self, dataset_name: str):
-        return self.db.open_table(dataset_name)
+        return self.db.open_table(
+            dataset_name
+        )  # table name should be self explanatory -> dataset name + encoder + chunking
 
     def add_to_index(
         self,
@@ -54,8 +56,8 @@ class Indexer:
             raise ValueError(
                 f'Invalid mode {mode!r}. Valid values are: {", ".join(VALID_MODES)}'
             )
-        
+
         if mode == "overwrite":
             self.db.create_table(name=dataset_name, data=data_to_insert, mode=mode)
-        elif mode == 'append':
+        elif mode == "append":
             self.db.open_table(dataset_name).add(data_to_insert)

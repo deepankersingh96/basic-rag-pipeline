@@ -17,5 +17,6 @@ dependencies = [
     "llama-index>=0.14.24",
     "numpy>=2.5.1",
     "openai>=2.52.0",
+    "sentence-transformers>=5.6.1",
     "tiktoken>=0.13.0",
 ]
