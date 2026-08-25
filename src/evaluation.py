@@ -10,7 +10,7 @@ class Evaluator:
     @staticmethod
     def df_to_pytrec(df: pd.DataFrame):
         run = defaultdict(dict)
-        print(f"Converting {len(df)} queries.")
+        print(f"Converting {len(df)} retrieved results to pytrec format.")
 
         for _id, doc_id, score in df[["q_id", "doc_id", "score"]].itertuples(
             index=False

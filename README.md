@@ -83,7 +83,8 @@ basic-rag-pipeline/
 - Add search-only helpers if the workflow starts needing them.
 - Add more chunking refinements as the corpus and evaluation needs evolve.
 - ~~Add re-ranking to refine results.~~
-- Separate Retriever and Re-ranker. 
+- ~~Separate Retriever and Re-ranker. ~~
+- Make Protocol-Factory for pipeline orchestration.
 
 ## Notes
 

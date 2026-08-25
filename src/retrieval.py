@@ -24,8 +24,7 @@ class Retriever:
         q_embeddings: Iterable,
         dist_metric: DIST_METRIC,
         top_k: int = 10,
-        re_rank: bool = False,
-    ):
+    ) -> pa.Table:
         db_table = self.db.open_table(dataset_name)
         q_embeddings = list(q_embeddings)
         tables = []
@@ -42,20 +41,14 @@ class Retriever:
                 .limit(top_k)
                 .to_arrow()
             )
-            # TODO: add re ranking here
-            if re_rank:
-                result = self.reranker.re_rank(emb.query, result)
-                result = result.append_column(
-                    "score", result["score_cross_enc"]
-                )
-            else:
-                result = result.append_column(
-                    "score", pc.negate(result["_distance"])
-                )
 
             result = result.append_column(
                 "q_id", pa.array([emb.query.q_id] * len(result))
             )
+            result = result.append_column(
+                "score_retrieval", pc.negate(result["_distance"])
+            )
+
             tables.append(result)
 
         return pa.concat_tables(tables) if tables else pa.table({})
