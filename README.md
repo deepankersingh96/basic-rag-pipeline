@@ -85,6 +85,9 @@ basic-rag-pipeline/
 - ~~Add re-ranking to refine results.~~
 - ~~Separate Retriever and Re-ranker. ~~
 - Make Protocol-Factory for pipeline orchestration.
+- Add re ranker
+- Add MLFlow experiment tracking
+- Add pipeline orchestration- configs, Protocols, Factories
 
 ## Notes
 
