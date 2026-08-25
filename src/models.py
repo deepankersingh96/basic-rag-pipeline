@@ -22,7 +22,7 @@ class Chunk:
     metadata: Optional[dict]
 
 @dataclass
-class Embedding:
+class Embedding:  # NOTE: should embedding be inside query or query be inside embeddings!?
     vector: list[float]
     chunk: Optional[Chunk] = None
     query: Optional[Query] = None
