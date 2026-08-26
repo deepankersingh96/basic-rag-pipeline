@@ -56,6 +56,7 @@ basic-rag-pipeline/
     ├── evaluation.py
     ├── index.py
     ├── models.py
+    ├── reranking.py
     └── retrieval.py
 ```
 
@@ -79,13 +80,10 @@ basic-rag-pipeline/
 ## Planned Improvements
 
 - Add more embedding backends.
-- Add more retrieval-side options, such as per-dataset filtering or **ranking** tweaks.
 - Add search-only helpers if the workflow starts needing them.
 - Add more chunking refinements as the corpus and evaluation needs evolve.
 - ~~Add re-ranking to refine results.~~
 - ~~Separate Retriever and Re-ranker. ~~
-- Make Protocol-Factory for pipeline orchestration.
-- Add re ranker
 - Add MLFlow experiment tracking
 - Add pipeline orchestration- configs, Protocols, Factories
 

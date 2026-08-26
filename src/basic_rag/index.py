@@ -1,5 +1,5 @@
 import lancedb
-from src.models import Embedding
+from .models import Embedding
 from typing import Iterable, Literal, TypeAlias, get_args
 import pyarrow as pa
 import json

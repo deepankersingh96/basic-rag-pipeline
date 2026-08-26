@@ -1,11 +1,11 @@
 import openai
-from typing import Iterable
+from typing import Iterable, Protocol
 from dotenv import load_dotenv
 
-from src.models import Embedding, Chunk, Query
+from .models import Embedding, Chunk, Query
 
 
-class Embedder:
+class OpenAIEmbedder:
     def __init__(self):
         load_dotenv()
         self.client = openai.Client()
@@ -37,7 +37,7 @@ class Embedder:
 
         embeddings = [
             Embedding(
-                query=Query(q_id=q.q_id, text=q.text, metadata=q.metadata), vector=vector
+                query=q, vector=vector
             )
             for q, vector in zip(queries, vectors)
         ]

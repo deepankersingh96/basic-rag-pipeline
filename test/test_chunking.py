@@ -36,3 +36,13 @@ pprint(chunks[:2])
 for i, chunk in enumerate(chunks):
     tokens = encoding.encode(chunk.text)
     print(f'num tokens in chunk {i} = {len(tokens)}')
+
+
+sentence_chunker = SentenceChunker()
+
+chunks = sentence_chunker.chunk([
+    Document(doc_id='test-doc', text=text, metadata={})
+])
+
+print("Sentence chunker output: ")
+pprint(chunks[:3])

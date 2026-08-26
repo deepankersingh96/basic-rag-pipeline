@@ -4,7 +4,7 @@ from sentence_transformers import CrossEncoder
 import pyarrow as pa
 import pyarrow.compute as pc
 
-from src.models import Query, Embedding
+from .models import Query, Embedding
 
 
 class Reranker:

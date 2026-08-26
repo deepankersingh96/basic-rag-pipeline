@@ -5,7 +5,7 @@ import pyarrow as pa
 import pyarrow.compute as pc
 import lancedb
 
-from src.reranking import Reranker
+from .reranking import Reranker
 
 
 DIST_METRIC: TypeAlias = Literal["l2", "cosine", "dot"]
