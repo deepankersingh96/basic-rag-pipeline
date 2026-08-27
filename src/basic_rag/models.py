@@ -21,11 +21,21 @@ class Chunk:
     text: str
     metadata: Optional[dict]
 
+# @dataclass
+# class Embedding:  # NOTE: should embedding be inside query or query be inside embeddings!?
+#     vector: list[float]
+#     chunk: Optional[Chunk] = None
+#     query: Optional[Query] = None
+
 @dataclass
-class Embedding:  # NOTE: should embedding be inside query or query be inside embeddings!?
+class EmbeddedQuery:  
     vector: list[float]
-    chunk: Optional[Chunk] = None
-    query: Optional[Query] = None
+    query: type[Query]
+
+@dataclass
+class EmbeddedChunk: 
+    vector: list[float]
+    chunk: type[Chunk]
 
 @dataclass
 class Retreival:
