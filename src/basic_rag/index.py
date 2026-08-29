@@ -1,6 +1,6 @@
 import lancedb
-from .models import Embedding
-from typing import Iterable, Literal, TypeAlias, get_args
+from .models import EmbeddedChunk
+from typing import Protocol, ClassVar
 import pyarrow as pa
 import json
 
@@ -16,32 +16,52 @@ schema = pa.schema(
     ]
 )
 
-Mode: TypeAlias = Literal["overwrite", "append"]
-VALID_MODES = get_args(Mode)
+
+class VectorDB(Protocol):
+    def create_db(self, name: str, uri: str): ...
+    def get_db(self): ...
+    def add_to_db(self, embedded_chunks: list[EmbeddedChunk]): ...
+    def index_db(self, index_type: str, **kwargs): ...  # Creates index from scratch
+    def update_index(self): ...  # Optimize the index incrementally
 
 
-class Indexer:
-    def __init__(
-        self,
-        uri,
-    ):
-        self.db = lancedb.connect(uri)
+class VectorDBFactory:
+    _registry = ClassVar[dict[str, type[VectorDB]]]
 
-    def get_index(self):
-        return self.db
+    @classmethod
+    def register(cls, name: str):
+        def decorator(vector_db_cls: type[VectorDB]):
+            cls._registry[name] = vector_db_cls
+            return vector_db_cls
 
-    def get_table(self, dataset_name: str):
-        return self.db.open_table(
-            dataset_name
-        )  # table name should be self explanatory -> dataset name + encoder + chunking
+        return decorator
 
-    def add_to_index(
-        self,
-        embeddings: Iterable[Embedding],
-        dataset_name: str,
-        mode: Mode = "append",
-    ):
+    @classmethod
+    def create(cls, name: str, *args, **kwargs) -> type[VectorDB]:
+        if name not in cls._registry.keys():
+            raise ValueError(f"{name} not a valid VectorDB type.")
+        vector_db_cls = cls._registry[name]
+        return vector_db_cls(*args, **kwargs)
 
+
+@VectorDBFactory.register("lancedb")
+class LanceDBIndexer:
+    def __init__(self):
+        # self.db = None
+        self.table = None
+
+    def create_db(self, name: str, uri: str):
+        if self.table is not None:
+            raise ValueError("Class object already has an associated VectorDB.")
+        table_name = name
+        self.table = lancedb.connect(uri).create_table(
+            table_name, schema=schema, mode="overwrite"
+        )
+
+    def get_db(self):
+        return self.table
+
+    def add_to_db(self, embedded_chunks: list[EmbeddedChunk]):
         data_to_insert = [
             {
                 "ch_id": emb.chunk.ch_id,
@@ -50,14 +70,12 @@ class Indexer:
                 "metadata": json.dumps(emb.chunk.metadata),
                 "vector": emb.vector,
             }
-            for emb in embeddings
+            for emb in embedded_chunks
         ]
-        if mode not in VALID_MODES:
-            raise ValueError(
-                f'Invalid mode {mode!r}. Valid values are: {", ".join(VALID_MODES)}'
-            )
+        self.table.add(data_to_insert)
 
-        if mode == "overwrite":
-            self.db.create_table(name=dataset_name, data=data_to_insert, mode=mode)
-        elif mode == "append":
-            self.db.open_table(dataset_name).add(data_to_insert)
+    def index_db(self, index_type: str, **kwargs):
+        self.table.create_index(index_type=index_type, **kwargs)
+
+    def update_index(self):
+        self.table.optimize()

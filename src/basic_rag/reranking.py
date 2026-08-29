@@ -1,44 +1,72 @@
-from typing import Iterable
+from typing import Iterable, Protocol, runtime_checkable, ClassVar
 
 from sentence_transformers import CrossEncoder
 import pyarrow as pa
 import pyarrow.compute as pc
 
-from .models import Query, Embedding
+from .models import Query, EmbeddedQuery
 
 
-class Reranker:
+@runtime_checkable
+class ReRanker(Protocol):
+    def setup(self, **kwargs): ...
+    def re_rank(self, query: type[Query], retrievals: type[pa.Table]): ...
+
+
+class ReRankerFactory:
+    _registry = ClassVar[dict[str, type[ReRanker]]]
+
+    @classmethod
+    def register(cls, name: str):
+        def decorator(re_ranker_cls: type[ReRanker]):
+            cls._registry[name] = re_ranker_cls
+            return re_ranker_cls
+
+        return decorator
+
+    @classmethod
+    def create(cls, name: str, *args, **kwargs) -> type[ReRanker]:
+        if name not in cls._registry.keys():
+            raise ValueError(f"{name} not a valid Re-Ranker type.")
+        re_ranker_cls = cls._registry[name]
+        return re_ranker_cls(*args, **kwargs)
+
+
+@ReRankerFactory.register("cross_encoder")
+class CrossEncoderReRanker:
     def __init__(self, model_name: str):
+        self.model_name = model_name
+        self.cross_encoder = None
+
+    def setup(self):
         self.cross_encoder = CrossEncoder(
-            model_name
+            self.model_name
         )  # "cross-encoder/ms-marco-MiniLM-L6-v2"
 
-    def re_rank(self, query: Query, retrievals: pa.Table) -> pa.Table:
-        retrievals = (
-            retrievals.to_pandas()
-        )  # TODO: can this be done without converting to pandas?
-
+    def re_rank(self, query: type[Query], retrievals: type[pa.Table]):
+        # TODO: can this be done without converting to pandas?
+        retrievals = retrievals.to_pandas()
         cross_inp = [[query.text, doc_text] for doc_text in retrievals["text"]]
-
         cross_scores = self.cross_encoder.predict(cross_inp)
-
         retrievals["score_cross_enc"] = cross_scores
 
         return pa.Table.from_pandas(retrievals)
 
     def re_rank_batch(
-        self, q_embeddings: Iterable[Embedding], batch_retrievals: pa.Table
-    ) -> pa.Table:
+        self,
+        embedded_queries: Iterable[EmbeddedQuery],
+        batch_retrievals: type[pa.Table],
+    ):
         re_ranked_batch = []
 
         # re-rank each q_id with re_rank
-        for q_emb in q_embeddings:
+        for q_emb in embedded_queries:
             query = q_emb.query
-            filtered = batch_retrievals.filter(
+            filtered_rets = batch_retrievals.filter(
                 pc.equal(batch_retrievals["q_id"], query.q_id)
             )
 
-            re_ranked_retrievals = self.re_rank(query, filtered)
+            re_ranked_retrievals = self.re_rank(query, filtered_rets)
             re_ranked_batch.append(re_ranked_retrievals)
 
         # gather results
@@ -52,12 +80,18 @@ class Reranker:
         return re_ranked_batch
 
 
+@ReRankerFactory.register("no_op")
 class NoOpReranker:
-    def __init__(self):
+    def setup(self):
         pass
-    
+
+    def re_rank(self, query: type[Query], retrievals: type[pa.Table]):
+        # assign score to be retriever score.
+        retrievals = retrievals.append_column("score", retrievals["score_retrieval"])
+        return retrievals
+
     def re_rank_batch(
-        self, q_embeddings: Iterable[Embedding], batch_retrievals: pa.Table
+        self, embedded_queries: Iterable[EmbeddedQuery], batch_retrievals: pa.Table
     ) -> pa.Table:
 
         # assign score to be retriever score.
@@ -65,3 +99,7 @@ class NoOpReranker:
             "score", batch_retrievals["score_retrieval"]
         )
         return batch_retrievals
+
+
+@ReRankerFactory.register("llm")
+class LLMReRanker: ...
