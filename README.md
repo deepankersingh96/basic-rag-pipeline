@@ -7,6 +7,7 @@ It is built to make it easy to compare pipeline choices on a dataset-first workf
 
 ```text
 basic-rag-pipeline/
+├── config.yaml
 ├── notebooks/
 │   ├── eval_beir_ir.ipynb
 │   └── rag-cat-facts.ipynb
@@ -34,14 +35,23 @@ basic-rag-pipeline/
    uv pip install -e .
    ```
 
-3. Download the BEIR datasets:
+3. Start the local MLflow tracking server in a separate terminal:
+
+   ```bash
+   mlflow server --host 127.0.0.1 --port 5000
+   ```
+
+   Leave this server running before you start the notebook so MLflow logging works against the local tracking URI in `config.yaml`.
+
+4. Download the BEIR datasets:
 
    ```bash
    uv run python datasets/beir/download.py
    ```
 
-4. Open [`notebooks/eval_beir_ir.ipynb`](./notebooks/eval_beir_ir.ipynb).
-5. Run the notebook end to end:
+5. Open [`notebooks/eval_beir_ir.ipynb`](./notebooks/eval_beir_ir.ipynb).
+   Make sure the notebook is configured to load [`config.yaml`](./config.yaml) so it uses the same dataset, indexing, and MLflow settings.
+6. Run the notebook end to end:
    - load data
    - chunk documents
    - embed chunks and queries
@@ -55,6 +65,7 @@ basic-rag-pipeline/
 - BEIR-style dataset loading and evaluation.
 - Token, word, and sentence chunking.
 - Embedding, indexing, retrieval, and reranking components under `src/basic_rag/`.
+- MLflow tracking for local experiment logging.
 - Notebook-driven end-to-end experimentation.
 
 ## Planned Improvements
