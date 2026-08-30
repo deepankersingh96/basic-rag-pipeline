@@ -1,0 +1,38 @@
+# Dataset configs
+dataset_type : beir
+dataset_name : scifact
+# path_qrel : f../datasets/beir/datasets/{dataset_name}/qrels/train.tsv
+# path_corpus : f../datasets/beir/datasets/{dataset_name}/corpus.jsonl
+# path_queries : f../datasets/beir/datasets/{dataset_name}/queries.jsonl
+batch_size : 512
+
+# Chunker configs
+chunker_type : token
+token_chunker_encoder : cl100k_base
+chunk_size : 1024
+chunk_overlap : 50
+
+# Embedder config
+embedder_type : openai
+embedding_model : text-embedding-3-small
+
+# Indexer config
+indexer_type : &indexer_type lancedb
+index_type : IVF_PQ
+vector_db_uri : lancedb_index
+# vector_db_name : (
+#     f{dataset_type}_{dataset_name}_{chunker_type}_{embedding_model}_{index_type}
+# )
+load_existing : true
+
+# Reranker config
+re_ranker_type : cross_encoder
+re_rank_model : cross-encoder/ms-marco-MiniLM-L6-v2
+
+# Retriever config
+retriever_type : *indexer_type
+dist_metric : l2
+retrieval_limit : 10
+
+# MLFlow config
+mlflow_tracking_uri : http://127.0.0.1:5000

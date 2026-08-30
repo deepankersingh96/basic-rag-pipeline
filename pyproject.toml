@@ -10,11 +10,13 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "beir>=2.2.0",
+    "coolname>=5.0.0",
     "dotenv>=0.9.9",
     "ipykernel>=7.3.0",
     "jsonlines>=4.0.0",
     "lancedb>=0.37.1",
     "llama-index>=0.14.24",
+    "mlflow>=3.15.2",
     "numpy>=2.5.1",
     "openai>=2.52.0",
     "sentence-transformers>=5.6.1",
