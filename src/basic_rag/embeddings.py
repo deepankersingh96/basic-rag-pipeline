@@ -1,5 +1,5 @@
 import openai
-from typing import Iterable, Protocol, runtime_checkable
+from typing import Iterable, Protocol, runtime_checkable, ClassVar
 from dotenv import load_dotenv
 
 from .models import EmbeddedChunk, EmbeddedQuery, Chunk, Query
@@ -13,7 +13,7 @@ class Embedder(Protocol):
 
 
 class EmbedderFactory:
-    _registry = {}
+    _registry: ClassVar[dict[str, type[Embedder]]]= {}
 
     @classmethod
     def register(cls, name: str):
@@ -34,13 +34,14 @@ class EmbedderFactory:
 
 @EmbedderFactory.register("openai")
 class OpenAIEmbedder:
-    def __init__(self):
+    def __init__(self, model="text-embedding-3-small"):
         load_dotenv()
         self.client = openai.Client()
+        self.model = model
 
     def embed_texts(self, texts: list[str]) -> list[list[float]]:
         responses = self.client.embeddings.create(
-            model="text-embedding-3-small", input=texts
+            model=self.model, input=texts
         )
         vectors = [x.embedding for x in responses.data]
         return vectors

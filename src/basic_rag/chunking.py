@@ -10,8 +10,7 @@ __all__ = ["WordChunker", "TokenChunker", "SentenceChunker"]
 
 class Chunker(ABC):
     @abstractmethod
-    def chunk(self, documents: Iterable[Document]) -> Iterable[Chunk]:
-        pass
+    def chunk(self, documents: Iterable[Document]) -> Iterable[Chunk]: ...
 
 
 class ChunkerFactory:

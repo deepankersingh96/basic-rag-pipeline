@@ -14,7 +14,7 @@ class ReRanker(Protocol):
 
 
 class ReRankerFactory:
-    _registry = ClassVar[dict[str, type[ReRanker]]]
+    _registry: ClassVar[dict[str, type[ReRanker]]]={}
 
     @classmethod
     def register(cls, name: str):
@@ -37,11 +37,12 @@ class CrossEncoderReRanker:
     def __init__(self, model_name: str):
         self.model_name = model_name
         self.cross_encoder = None
+        self.setup()
 
     def setup(self):
         self.cross_encoder = CrossEncoder(
             self.model_name
-        )  # "cross-encoder/ms-marco-MiniLM-L6-v2"
+        )  
 
     def re_rank(self, query: type[Query], retrievals: type[pa.Table]):
         # TODO: can this be done without converting to pandas?

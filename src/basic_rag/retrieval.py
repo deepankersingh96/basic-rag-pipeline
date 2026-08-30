@@ -14,7 +14,7 @@ class Retriever(Protocol):
 
 
 class RetrieverFactory:
-    _registry = ClassVar[dict[str, type[Retriever]]]
+    _registry: ClassVar[dict[str, type[Retriever]]]= {}
 
     @classmethod
     def register(cls, name: str):
@@ -34,9 +34,9 @@ class RetrieverFactory:
 
 @RetrieverFactory.register("lancedb")
 class LanceDBRetriever:
-    def __init__(self):
-        self.db = None
+    def __init__(self, vector_db_uri: str, vector_db_name: str):
         self.table = None
+        self.setup(vector_db_uri=vector_db_uri, vector_db_name=vector_db_name)
 
     def setup(self, vector_db_uri: str, vector_db_name: str):
         self.table = lancedb.connect(vector_db_uri).open_table(vector_db_name)
@@ -46,8 +46,8 @@ class LanceDBRetriever:
 
         result = (
             self.table.search(emb.vector, vector_column_name="vector")
-            .metric(kwargs.metric)
-            .limit(kwargs.limit)
+            .metric(kwargs["metric"])
+            .limit(kwargs["limit"])
             .to_arrow()
         )
         result = result.append_column("q_id", pa.array([emb.query.q_id] * len(result)))

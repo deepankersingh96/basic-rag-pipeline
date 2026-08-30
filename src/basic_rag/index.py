@@ -1,8 +1,14 @@
+from typing import Protocol, ClassVar, runtime_checkable
+import logging
+
 import lancedb
-from .models import EmbeddedChunk
-from typing import Protocol, ClassVar
 import pyarrow as pa
 import json
+
+from .models import EmbeddedChunk
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 schema = pa.schema(
     [
@@ -17,6 +23,7 @@ schema = pa.schema(
 )
 
 
+@runtime_checkable
 class VectorDB(Protocol):
     def create_db(self, name: str, uri: str): ...
     def get_db(self): ...
@@ -26,7 +33,7 @@ class VectorDB(Protocol):
 
 
 class VectorDBFactory:
-    _registry = ClassVar[dict[str, type[VectorDB]]]
+    _registry: ClassVar[dict[str, type[VectorDB]]] = {}
 
     @classmethod
     def register(cls, name: str):
@@ -45,18 +52,23 @@ class VectorDBFactory:
 
 
 @VectorDBFactory.register("lancedb")
-class LanceDBIndexer:
-    def __init__(self):
-        # self.db = None
+class LanceVectorDB:
+    def __init__(self, db_name: str, db_uri: str, load_existing: bool = False):
         self.table = None
+        self.create_db(name=db_name, uri=db_uri, load_existing=load_existing)
 
-    def create_db(self, name: str, uri: str):
-        if self.table is not None:
-            raise ValueError("Class object already has an associated VectorDB.")
+    def create_db(self, name: str, uri: str, load_existing: bool):
         table_name = name
-        self.table = lancedb.connect(uri).create_table(
-            table_name, schema=schema, mode="overwrite"
-        )
+        connection = lancedb.connect(uri)
+
+        if load_existing and table_name in connection.list_tables().tables:
+            self.table = connection.open_table(table_name)
+            logger.info(f"LOADED EXISTING TABLE: {table_name}")
+        else:
+            self.table = connection.create_table(
+                table_name, schema=schema, mode="overwrite"
+            )
+            logger.info(f"CREATED NEW TABLE: {table_name}")
 
     def get_db(self):
         return self.table
@@ -75,6 +87,7 @@ class LanceDBIndexer:
         self.table.add(data_to_insert)
 
     def index_db(self, index_type: str, **kwargs):
+        logger.info(f"Created DB Index. Index type={index_type}")
         self.table.create_index(index_type=index_type, **kwargs)
 
     def update_index(self):
