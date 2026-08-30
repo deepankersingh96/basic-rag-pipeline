@@ -1,19 +1,36 @@
-from typing import Iterable
+from typing import Iterable, ClassVar
 from abc import ABC, abstractmethod
 from llama_index.core.node_parser import SentenceSplitter, TokenTextSplitter
 import tiktoken
 
-from src.models import Document, Chunk
+from .models import Document, Chunk
 
 __all__ = ["WordChunker", "TokenChunker", "SentenceChunker"]
 
 
 class Chunker(ABC):
     @abstractmethod
-    def chunk(self, documents: Iterable[Document]) -> Iterable[Chunk]:
-        pass
+    def chunk(self, documents: Iterable[Document]) -> Iterable[Chunk]: ...
 
 
+class ChunkerFactory:
+    _registry: ClassVar[dict[str, type[Chunker]]] = {}
+
+    @classmethod
+    def register(cls, name: str):
+        def decorator(chunker_cls: type[Chunker]):
+            cls._registry[name] = chunker_cls
+            return chunker_cls
+        return decorator
+
+    @classmethod
+    def create(cls, name:str, **kwargs):
+        if name not in cls._registry.keys():
+            raise ValueError(f"{name} not a valid chunker name.")
+        return cls._registry[name](**kwargs)
+
+
+@ChunkerFactory.register("token")
 class TokenChunker(Chunker):
     def __init__(
         self, chunk_size: int = 512, chunk_overlap: int = 50, encoding: str = "gpt-4o"
@@ -51,6 +68,7 @@ class TokenChunker(Chunker):
         return chunks
 
 
+@ChunkerFactory.register("word")
 class WordChunker(Chunker):
     def __init__(
         self,
@@ -81,6 +99,7 @@ class WordChunker(Chunker):
         return chunks
 
 
+@ChunkerFactory.register("sentence")
 class SentenceChunker(Chunker):
     def __init__(
         self,
